@@ -41,6 +41,4 @@ class Day02 {
         }
         return differences
     }
-
-    fun differsByOneChar(a: String, b: String) = divergentIndices(a, b).size == 1
 }
