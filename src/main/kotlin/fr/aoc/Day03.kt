@@ -5,13 +5,10 @@ import kotlin.streams.toList
 
 class Day03 {
 
-    val regex = Regex("#(\\d+) @ (\\d+),(\\d+): (\\d+)x(\\d+)")
+    private val regex = Regex("#(\\d+) @ (\\d+),(\\d+): (\\d+)x(\\d+)")
 
     fun part1(path: String): Int {
-        val claims = File(path).bufferedReader()
-            .lines()
-            .map { claim(it) }
-            .toList()
+        val claims = claims(path)
         val inches = mutableSetOf<Point>()
         for (i in claims.indices) {
             for (j in i + 1 until claims.size) {
@@ -21,6 +18,22 @@ class Day03 {
         }
         return inches.size
     }
+
+    fun part2(path: String): Int {
+        val claims = claims(path)
+        for (i in claims.indices) {
+            for (j in claims.indices) {
+                if(claims[i].overlaps(claims[j])) break;
+                if(j == claims.lastIndex) return claims[i].id
+            }
+        }
+        return -1
+    }
+
+    private fun claims(path: String) = File(path).bufferedReader()
+        .lines()
+        .map { claim(it) }
+        .toList()
 
     private fun claim(string: String): Claim {
         val (id, left, top, width, height) = regex.matchEntire(string)!!.destructured
@@ -41,6 +54,8 @@ data class Claim(val id: Int, val left: Int, val top: Int, val width: Int, val h
     }
 
     fun commonPoints(other: Claim) = this.points().intersect(other.points()).toSet()
+
+    fun overlaps(other: Claim) = this.id != other.id && commonPoints(other).isNotEmpty()
 }
 
 data class Point(val x: Int, val y: Int)
