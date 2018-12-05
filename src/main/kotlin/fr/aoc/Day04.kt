@@ -19,6 +19,16 @@ class Day04 {
         return a * b
     }
 
+    fun part2(path: String): Int {
+        val records = records(path)
+        val guards =  guards(records)
+        println(guards.map { "${it.id}  ${it.shifts.size}" })
+        val guard = guards.maxBy { it.mostTimeAsleep() }
+        val a = guard!!.id
+        val b = guard.minuteMostAsleep()
+        return a * b
+    }
+
     private fun guards(records: List<Record>): List<Guard> {
         val guards = mutableMapOf<Int, Guard>()
         var guard = Guard()
@@ -34,6 +44,9 @@ class Day04 {
                 times.add(record.date.minute)
             }
         }
+        guard.shifts.add(shift(times))
+        val id = guard.id
+        guards.getOrPut(id) { Guard(id) }
         return guards.values.toList()
     }
 
@@ -42,10 +55,6 @@ class Day04 {
         .map { record(it) }
         .sorted()
         .toList()
-
-    fun part2(path: String): Int {
-        return -2
-    }
 
     private fun record(line: String): Record {
         if(regexBeginsShift.matches(line)) {
@@ -100,8 +109,17 @@ class Guard(val id: Int = 0) {
         .count { it.sleeping }
 
     fun minuteMostAsleep() = shifts.flatMap { it.minutes }
-        .filter { it.sleeping }
-        .groupingBy { it.time }
-        .eachCount()
-        .maxBy { it.value }!!.key
+                .filter { it.sleeping }
+                .groupingBy { it.time }
+                .eachCount()
+                .maxBy { it.value }!!.key
+
+    fun mostTimeAsleep(): Int {
+        val eachCount = shifts.flatMap { it.minutes }
+                .filter { it.sleeping }
+                .groupingBy { it.time }
+                .eachCount()
+        if(eachCount.isEmpty()) return -1
+        return eachCount.maxBy { it.value }!!.value
+    }
 }
