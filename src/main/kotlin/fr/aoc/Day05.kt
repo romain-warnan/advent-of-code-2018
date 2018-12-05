@@ -4,22 +4,33 @@ import java.io.File
 
 class Day05 {
 
-    fun part1(path: String): Int {
-        var text = File(path).readText()
+    fun part1(path: String) = reducePolymer(File(path).readText())
+
+    fun part2(path: String): Int {
+        val text = File(path).readText()
+        val min = ('a'..'z')
+            .map { text.replace(it.toString(), "", ignoreCase = true) }
+            .map { reducePolymer(it) }
+            .min()
+        return min!!
+    }
+
+    private fun reducePolymer(text: String): Int {
+        var text1 = text
         var react = true
-        while (react){
+        while (react) {
             react = false
             var n = 0
-            while (n < text.length - 1) {
-                if(willReact(text[n], text[n + 1])) {
+            while (n < text1.length - 1) {
+                if (willReact(text1[n], text1[n + 1])) {
                     react = true
-                    text = text.removeRange(n, n + 2)
+                    text1 = text1.removeRange(n, n + 2)
                     n = 0
                 }
-                n ++
+                n++
             }
         }
-        return text.length
+        return text1.length
     }
 
     private fun willReact(a: Char, b: Char) = a != b && a.equals(b, ignoreCase = true)
