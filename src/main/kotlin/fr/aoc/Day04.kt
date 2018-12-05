@@ -12,6 +12,14 @@ class Day04 {
 
     fun part1(path: String): Int {
         val records = records(path)
+        val guards =  guards(records)
+        val guard = guards.maxBy { it.totalTimeAsleep() }
+        val a = guard!!.id
+        val b = guard.minuteMostAsleep()
+        return a * b
+    }
+
+    private fun guards(records: List<Record>): List<Guard> {
         val guards = mutableMapOf<Int, Guard>()
         var guard = Guard()
         val times = mutableListOf<Int>()
@@ -26,7 +34,7 @@ class Day04 {
                 times.add(record.date.minute)
             }
         }
-        return -1
+        return guards.values.toList()
     }
 
     private fun records(path: String) = File(path).bufferedReader()
@@ -60,7 +68,7 @@ class Day04 {
     private fun shift(times: List<Int>): Shift {
         val shift = Shift()
         var sleeping = false
-        for (time in 0..60) {
+        for (time in 0..59) {
             if(time in times) sleeping = !sleeping
             shift.minutes += Minute(time, sleeping)
         }
@@ -87,7 +95,13 @@ class Guard(val id: Int = 0) {
 
     val shifts = mutableListOf<Shift>()
 
-     fun totalTimeAsleep() = shifts
-         .flatMap { it.minutes }
-         .count { it.sleeping }
+    fun totalTimeAsleep() = shifts
+        .flatMap { it.minutes }
+        .count { it.sleeping }
+
+    fun minuteMostAsleep() = shifts.flatMap { it.minutes }
+        .filter { it.sleeping }
+        .groupingBy { it.time }
+        .eachCount()
+        .maxBy { it.value }!!.key
 }
