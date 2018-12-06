@@ -9,7 +9,7 @@ class Day03 {
 
     fun part1(path: String): Int {
         val claims = claims(path)
-        val inches = mutableSetOf<Point>()
+        val inches = mutableSetOf<Claim.Point>()
         for (i in claims.indices) {
             for (j in i + 1 until claims.size) {
                 val commonPoints = claims[i].commonPoints(claims[j])
@@ -56,6 +56,7 @@ data class Claim(val id: Int, val left: Int, val top: Int, val width: Int, val h
     fun commonPoints(other: Claim) = this.points().intersect(other.points()).toSet()
 
     fun overlaps(other: Claim) = this.id != other.id && commonPoints(other).isNotEmpty()
+
+    data class Point(val x: Int, val y: Int)
 }
 
-data class Point(val x: Int, val y: Int)
