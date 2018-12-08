@@ -14,6 +14,22 @@ class Day06 {
         return largestZoneSuperficy(zoneByPoints, infiniteZones)
     }
 
+    fun part2(path: String, maxDistance: Int = 10_000): Int {
+        val points = points(path)
+        val frame = Frame(-1000, 1000, -1000, 1000)
+        val (top, bottom, left, right) = frame
+        var superficy = 0
+        for (i in left..right) {
+            for (j in top..bottom) {
+                val point = Point(i, j)
+                if(totalDistance(point, points) < maxDistance) superficy++
+            }
+        }
+        return superficy
+    }
+
+    private fun totalDistance(point: Point, points: List<Point>) = points.map { manhattan(it, point) }.sum()
+
     private fun largestZoneSuperficy(zoneByPoints: MutableMap<Point, Candidate>, infiniteZones: Set<Int>) = zoneByPoints
         .map { it.value }
         .filter { it.isValid() }
@@ -84,6 +100,7 @@ class Day06 {
         }
         return candidate
     }
+
 
     data class Point(val x: Int, val y: Int) {
         fun touchesTheBorderOf(frame: Frame) = x == frame.left || x == frame.right || y == frame.top || y == frame.bottom
