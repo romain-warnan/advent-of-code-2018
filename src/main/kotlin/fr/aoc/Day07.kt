@@ -27,16 +27,8 @@ class Day07 {
 
         while (steps.isNotEmpty()) {
             elapsedTime ++
-            val availableSteps = steps.filter { !it.isRunning() }
-                .filter { it.canBeDone(result) }
-                .sorted()
-                .toMutableList()
-            for(worker in workers) {
-                if(worker.isIdle() && availableSteps.isNotEmpty()) {
-                    worker.step = availableSteps.first()
-                    availableSteps.removeIf { it.id == worker.step!!.id }
-                }
-            }
+            val availableSteps = availableSteps(steps, result)
+            assignStepsToWorkers(workers, availableSteps)
             for(worker in workers) {
                 if(worker.isWorking()) {
                     worker.step!!.remainingDuration--
@@ -52,12 +44,22 @@ class Day07 {
         return elapsedTime
     }
 
+    private fun assignStepsToWorkers(workers: Set<Worker>, availableSteps: MutableList<Step>) {
+        for (worker in workers) {
+            if (worker.isIdle() && availableSteps.isNotEmpty()) {
+                worker.step = availableSteps.first()
+                availableSteps.removeIf { it.id == worker.step!!.id }
+            }
+        }
+    }
+
     private fun workers(numberOfWorkers: Int) = (0 until numberOfWorkers).map { Worker(it) }.toSet()
 
     private fun availableSteps(steps: MutableCollection<Step>, result: String) = steps
+        .filter { !it.isRunning() }
         .filter { it.canBeDone(result) }
         .sorted()
-        .toList()
+        .toMutableList()
 
     private fun nextStep(steps: MutableCollection<Step>, result: String) = availableSteps(steps, result).first().id
 
