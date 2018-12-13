@@ -26,7 +26,7 @@ class Day12 {
         val max = 50_000_000_000
         return score + (max - padding) * 23 // A chaque étape, le score augmente du nombre de plante c'est à dire 23
     }
-    
+
     private fun score(state: String, padding: Int): Int {
         var score = 0
         for (index in 0 until state.length) {
