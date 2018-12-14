@@ -16,6 +16,38 @@ class Day13 {
         }
     }
 
+    fun part2(path: String): Pair<Int, Int> {
+        val wagons = wagons(path)
+        val track = track(path)
+        var n = 0
+        while(true) {
+            val wagon = wagons[n]
+            wagon.move(track)
+
+            val collisions = collisions(wagons)
+            if(collisions != null) {
+                val a = wagons.indexOf(collisions.first)
+                val b = wagons.indexOf(collisions.second)
+                if(n in a..(b - 1) || n in b..(a - 1)) n--
+                else if(a <= n && b <= n) n -= 2
+                wagons.remove(collisions.first)
+                wagons.remove(collisions.second)
+                if(wagons.size == 1) {
+                    val lastWagon = wagons.first()
+                    lastWagon.move(track)
+                    return Pair(lastWagon.point.x, lastWagon.point.y)
+                }
+            }
+            if(n >= wagons.lastIndex) {
+                wagons.sort()
+                n = 0
+            }
+            else {
+                n ++
+            }
+        }
+    }
+
     private fun trackPoint(x: Int, y: Int, type: Char) = TrackPoint(Point(x, y), type)
 
     private fun wagon(x: Int, y: Int, type: Char) = Wagon(Point(x, y), type)
@@ -28,6 +60,18 @@ class Day13 {
         }
         return null
     }
+
+
+    private fun collisions(wagons: List<Wagon>): Pair<Wagon, Wagon>? {
+        for(a in wagons) {
+            for(b in wagons){
+                if (a.collision(b)) return Pair(a, b)
+            }
+        }
+        return null
+    }
+
+
 
     private fun wagons(path: String): MutableList<Wagon> {
         val wagons = mutableListOf<Wagon>()
@@ -42,6 +86,7 @@ class Day13 {
                 }
             }
         }
+        wagons.sort()
         return wagons
     }
 
@@ -68,6 +113,7 @@ class Day13 {
         return track
     }
 
+    private fun removeWagons(point: Point, wagons: MutableList<Wagon>) = wagons.removeIf { it.point == point }
 
     data class Point(val x: Int, val y: Int): Comparable<Point> {
 
