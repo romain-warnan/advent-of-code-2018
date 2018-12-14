@@ -15,6 +15,13 @@ class Day14Test {
     }
 
     @Test
+    fun part2() {
+        val answer = day.part2("165061")
+        println("Part 2 : $answer")
+        Assert.assertEquals(0, answer)
+    }
+
+    @Test
     fun test1() {
         val answer = day.part1(9)
         Assert.assertEquals("5158916779", answer)
@@ -33,8 +40,26 @@ class Day14Test {
     }
 
     @Test
-    fun test4() {
-        val answer = day.part1(2018)
-        Assert.assertEquals("5941429882", answer)
+    fun test5() {
+        val answer = day.part2("51589")
+        Assert.assertEquals(9, answer)
+    }
+
+    @Test
+    fun test6() {
+        val answer = day.part2("01245")
+        Assert.assertEquals(5, answer)
+    }
+
+    @Test
+    fun test7() {
+        val answer = day.part2("92510")
+        Assert.assertEquals(18, answer)
+    }
+
+    @Test
+    fun test8() {
+        val answer = day.part2("59414")
+        Assert.assertEquals(2018, answer)
     }
 }

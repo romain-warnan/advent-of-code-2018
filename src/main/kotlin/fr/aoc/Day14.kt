@@ -1,8 +1,7 @@
 package fr.aoc
 
-import kotlin.math.min
-
 class Day14 {
+
     fun part1(numberOfRecipes: Int): String {
         val recipes = mutableListOf(3, 7)
         val elves = listOf(Elf(0), Elf(1))
@@ -11,6 +10,26 @@ class Day14 {
             elves.forEach { it.moveToNextPosition(recipes) }
         }
         return recipes.subList(numberOfRecipes, numberOfRecipes + 10).joinToString("")
+    }
+
+    fun part2(scoreSequence: String): Int {
+        val scores = scoreSequence.map { it.toString().toInt() }.toList()
+        val recipes = mutableListOf(3, 7)
+        val elves = listOf(Elf(0), Elf(1))
+        while (true) {
+            val newRecipes = newRecipes(elves, recipes)
+            recipes.addAll(newRecipes)
+            elves.forEach { it.moveToNextPosition(recipes) }
+            val length = scores.size
+            if(recipes.size >= length) {
+                for(i in newRecipes.indices) {
+                    val to = recipes.size - i
+                    if(to - length >= 0) {
+                        if(recipes.subList(to - length, to) == scores) return to - length
+                    }
+                }
+            }
+        }
     }
 
     private fun newRecipes(elves: List<Elf>, recipes: List<Int>)= elves
