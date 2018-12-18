@@ -17,6 +17,25 @@ class Day15 {
         return numberOfWoodedAcres * numberOfLumberyardsAcres
     }
 
+    fun part2(path: String): Int {
+        var acres = acres(path)
+        // 1000. 607 * 351 = 213057
+        // Le cycle est de 28
+        val resourcesValues = mutableListOf<Int>()
+        repeat(1_000) {
+            acres = nextAcres(acres)
+        }
+        repeat(28) {
+            val numberOfWoodedAcres = acres.flatMap { it }.count { it.isWooded() }
+            val numberOfLumberyardsAcres = acres.flatMap { it }.count { it.isLumberyard() }
+            val resourcesValue = numberOfWoodedAcres * numberOfLumberyardsAcres
+            resourcesValues += resourcesValue
+            acres = nextAcres(acres)
+        }
+        println(resourcesValues)
+        return resourcesValues[(1000000000 - 1000) % 28]
+    }
+
     private fun acres(path: String): List<List<Acre>> {
         val lines = File(path).readLines()
         val acres = mutableListOf<List<Acre>>()
