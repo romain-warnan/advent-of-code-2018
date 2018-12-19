@@ -17,18 +17,26 @@ class Day19 {
         return register[0]
     }
 
-    fun part2(ipRegister: Int, path: String): Int {
-        val register = mutableListOf(1, 0, 0, 0, 0, 0)
-        var ip = 0
-        val instructions = File(path).readLines().map { opcode(it) }
-        while (ip < instructions.size) {
-            register[ipRegister] = ip
-            instructions[ip].apply(register)
-            ip = register[ipRegister]
-            ip ++
-            println(register)
+    /*
+    [1, 10551340, 10551340, 7, 1, 1]
+    [3, 5275670, 10551340, 7, 2, 1]
+    [7, 2637835, 10551340, 7, 4, 1]
+    [12, 2110268, 10551340, 7, 5, 1]
+    [22, 1055134, 10551340, 7, 10, 1]
+    [42, 527567, 10551340, 7, 20, 1]
+    [85, 245380, 10551340, 7, 43, 1]
+    Le programme fait la somme (1re colonne) des diviseurs (5e colonne) de 10551340 (3e colone). Le dividende est stoqué dans le 2e colonne.
+     */
+
+    fun part2(): Int {
+        val number = 10551340
+        var result = 0
+        var n = 0
+        while (n <= number) {
+            n ++
+            if(number % n == 0) result += n
         }
-        return register[0]
+        return result
     }
 
     private fun opcode(line: String): Opcode {
