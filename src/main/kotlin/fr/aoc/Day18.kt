@@ -5,7 +5,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-class Day15 {
+class Day18 {
 
     fun part1(path: String): Int {
         var acres = acres(path)
