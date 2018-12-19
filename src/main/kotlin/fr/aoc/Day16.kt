@@ -33,7 +33,6 @@ class Day16 {
         val monitorings = monitorings(monitoringPath)
         val candidates = candidates(monitorings)
         val opcodes = opcodes(candidates)
-
         val lines = File(programPath).readLines()
         for(line in lines) {
             val args = line.split(" ").map { it.toInt() }
