@@ -83,43 +83,44 @@ class Day04 {
         }
         return shift
     }
-}
 
-class Record(val date: LocalDateTime, val type: Type, val guardId: Int = 0): Comparable<Record> {
+    class Record(val date: LocalDateTime, val type: Type, val guardId: Int = 0): Comparable<Record> {
 
-    override fun compareTo(other: Record) = this.date.compareTo(other.date)
+        override fun compareTo(other: Record) = this.date.compareTo(other.date)
 
-    enum class Type {
-        BEGINS_SHIFT, WAKES_UP, FALLS_ASLEEP
+        enum class Type {
+            BEGINS_SHIFT, WAKES_UP, FALLS_ASLEEP
+        }
+    }
+
+    class Minute(val time: Int, val sleeping: Boolean)
+
+    class Shift {
+        val minutes = mutableListOf<Minute>()
+    }
+
+    class Guard(val id: Int = 0) {
+
+        val shifts = mutableListOf<Shift>()
+
+        fun totalTimeAsleep() = shifts
+            .flatMap { it.minutes }
+            .count { it.sleeping }
+
+        fun minuteMostAsleep() = shifts.flatMap { it.minutes }
+                    .filter { it.sleeping }
+                    .groupingBy { it.time }
+                    .eachCount()
+                    .maxBy { it.value }!!.key
+
+        fun mostTimeAsleep(): Int {
+            val eachCount = shifts.flatMap { it.minutes }
+                    .filter { it.sleeping }
+                    .groupingBy { it.time }
+                    .eachCount()
+            if(eachCount.isEmpty()) return -1
+            return eachCount.maxBy { it.value }!!.value
+        }
     }
 }
 
-class Minute(val time: Int, val sleeping: Boolean)
-
-class Shift {
-    val minutes = mutableListOf<Minute>()
-}
-
-class Guard(val id: Int = 0) {
-
-    val shifts = mutableListOf<Shift>()
-
-    fun totalTimeAsleep() = shifts
-        .flatMap { it.minutes }
-        .count { it.sleeping }
-
-    fun minuteMostAsleep() = shifts.flatMap { it.minutes }
-                .filter { it.sleeping }
-                .groupingBy { it.time }
-                .eachCount()
-                .maxBy { it.value }!!.key
-
-    fun mostTimeAsleep(): Int {
-        val eachCount = shifts.flatMap { it.minutes }
-                .filter { it.sleeping }
-                .groupingBy { it.time }
-                .eachCount()
-        if(eachCount.isEmpty()) return -1
-        return eachCount.maxBy { it.value }!!.value
-    }
-}

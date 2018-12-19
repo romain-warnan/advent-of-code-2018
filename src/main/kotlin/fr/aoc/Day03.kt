@@ -39,24 +39,25 @@ class Day03 {
         val (id, left, top, width, height) = regex.matchEntire(string)!!.destructured
         return Claim(id.toInt(), left.toInt(), top.toInt(), width.toInt(), height.toInt())
     }
-}
 
-data class Claim(val id: Int, val left: Int, val top: Int, val width: Int, val height: Int) {
+    data class Claim(val id: Int, val left: Int, val top: Int, val width: Int, val height: Int) {
 
-    private fun points(): Set<Point> {
-        val points = mutableSetOf<Point>()
-        for (x in left until left + width) {
-            for (y in top until top + height) {
-                points += Point(x, y)
+        private fun points(): Set<Point> {
+            val points = mutableSetOf<Point>()
+            for (x in left until left + width) {
+                for (y in top until top + height) {
+                    points += Point(x, y)
+                }
             }
+            return points
         }
-        return points
+
+        fun commonPoints(other: Claim) = this.points().intersect(other.points()).toSet()
+
+        fun overlaps(other: Claim) = this.id != other.id && commonPoints(other).isNotEmpty()
+
+        data class Point(val x: Int, val y: Int)
     }
-
-    fun commonPoints(other: Claim) = this.points().intersect(other.points()).toSet()
-
-    fun overlaps(other: Claim) = this.id != other.id && commonPoints(other).isNotEmpty()
-
-    data class Point(val x: Int, val y: Int)
 }
+
 
