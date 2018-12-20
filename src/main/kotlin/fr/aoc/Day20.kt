@@ -8,14 +8,24 @@ class Day20 {
     }
 
     private fun maxLength(input: String): Int {
-        if('(' !in input) return input.length
-        val prefix = input.substringBefore("(")
-        val groups = groups(input.removePrefix(prefix))
+        var maxLength = 0
+        val elements = elements(input)
+        for (element in elements) {
+            maxLength += if(element.startsWith('(')) groups(element).map { maxLength(it) }.max()!! else  element.length
+        }
+        return maxLength
+    }
 
-        val tailIndex = tailIndex(input)
-        val tail = if(tailIndex > 0) input.substring(tailIndex + 1) else ""
-
-        return prefix.length + groups.map { maxLength(it) }.max()!! + maxLength(tail)
+    private fun elements(input: String, elements: MutableList<String> = mutableListOf()): List<String> {
+        if('(' !in input) elements += input
+        else {
+            val prefix = input.substringBefore("(")
+            val tailIndex = tailIndex(input)
+            elements += prefix
+            elements += input.substring(prefix.length, tailIndex + 1)
+            if(tailIndex + 1 < input.length) elements.addAll(elements(input.substring(tailIndex + 1)))
+        }
+        return elements
     }
 
     private fun tailIndex(input: String): Int {
