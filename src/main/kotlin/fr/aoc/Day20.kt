@@ -1,71 +1,46 @@
 package fr.aoc
 
+import java.util.*
+
 class Day20 {
 
     fun part1(regex: String): Int {
         val input = regex.removeSurrounding("^", "$")
-        return maxLength(input)
+        val rooms = rooms(input)
+        return rooms.maxBy { it.value }!!.value
     }
 
-    private fun maxLength(input: String): Int {
-        var maxLength = 0
-        val elements = elements(input)
-        for (element in elements) {
-            maxLength += if(element.startsWith('(')) groups(element).map { maxLength(it) }.max()!! else  element.length
-        }
-        return maxLength
+    fun part2(regex: String): Int {
+        val input = regex.removeSurrounding("^", "$")
+        val rooms = rooms(input)
+        return rooms.filter { it.value >= 1000 }.count()
     }
 
-    private fun elements(input: String, elements: MutableList<String> = mutableListOf()): List<String> {
-        if('(' !in input) elements += input
-        else {
-            val prefix = input.substringBefore("(")
-            val tailIndex = tailIndex(input)
-            elements += prefix
-            elements += input.substring(prefix.length, tailIndex + 1)
-            if(tailIndex + 1 < input.length) elements.addAll(elements(input.substring(tailIndex + 1)))
-        }
-        return elements
-    }
-
-    private fun tailIndex(input: String): Int {
-        var level = -1
-        for(indice in input.indices) {
-            val c = input[indice]
-            if(c == '(') level ++
-            if(c == ')') {
-                if(level == 0) return indice
-                level --
-            }
-        }
-        return -1
-    }
-
-    private fun groups(input: String): List<String> {
-        var level = -1
-        val groups = mutableListOf<String>()
-        var currentGroup = ""
-        for(c in input) {
-            if(level > 0) {
-                currentGroup += c
-            }
-            if(level == 0) {
-                when (c) {
-                    '|' -> {
-                        groups += currentGroup
-                        currentGroup = ""
-                    }
-                    ')' -> {
-                        groups += currentGroup
-                        if("" in groups) return listOf("") // Cas des détours
-                        return groups
-                    }
-                    else -> currentGroup += c
+    private fun rooms(input: String): MutableMap<Point, Int> {
+        var point = Point(0, 0)
+        val rooms = mutableMapOf(point to 0)
+        val crossings = LinkedList<Point>()
+        for (c in input) {
+            when (c) {
+                '(' -> crossings.add(point)
+                ')' -> crossings.removeLast()
+                '|' -> point = crossings.peekLast()
+                else -> {
+                    val nextPoint = point.move(c)
+                    rooms.getOrPut(nextPoint) { rooms[point]!! + 1 } // Cas des détours
+                    point = nextPoint
                 }
             }
-            if(c == '(') level ++
-            else if(c == ')') level --
         }
-        return listOf()
+        return rooms
+    }
+
+    data class Point(val x: Int, val y: Int) {
+        fun move(way: Char): Point = when (way) {
+            'N' -> Point(x, y - 1)
+            'E' -> Point(x - 1, y)
+            'S' -> Point(x, y + 1)
+            else -> Point(x + 1, y)
+        }
     }
 }

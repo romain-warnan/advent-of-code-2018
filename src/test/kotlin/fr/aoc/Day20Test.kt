@@ -15,6 +15,13 @@ class Day20Test {
     }
 
     @Test
+    fun part2() {
+        val answer = day.part2(File("src/main/resources/input20").readText())
+        println("Part 2 : $answer")
+        Assert.assertEquals(8600, answer)
+    }
+
+    @Test
     fun test1() {
         val answer = day.part1("^WNE$")
         Assert.assertEquals(3, answer)
