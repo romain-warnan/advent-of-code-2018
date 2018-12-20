@@ -1,6 +1,5 @@
 package fr.aoc
 import org.junit.Assert
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 
@@ -9,11 +8,10 @@ class Day20Test {
     private val day = Day20()
 
     @Test
-    @Ignore
     fun part1() {
         val answer = day.part1(File("src/main/resources/input20").readText())
         println("Part 1 : $answer")
-        Assert.assertEquals(0, answer)
+        Assert.assertEquals(3872, answer)
     }
 
     @Test
