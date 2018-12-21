@@ -1,10 +1,11 @@
 package fr.aoc
 
+import java.lang.Integer.min
 import java.util.*
 
 class Day20 {
 
-    fun part1(regex: String): Int {
+    fun part1(regex: String): Int? {
         val input = regex.removeSurrounding("^", "$")
         val rooms = rooms(input)
         return rooms.maxBy { it.value }!!.value
@@ -27,7 +28,9 @@ class Day20 {
                 '|' -> point = crossings.peekLast()
                 else -> {
                     val nextPoint = point.move(c)
-                    rooms.getOrPut(nextPoint) { rooms[point]!! + 1 } // Cas des détours
+                    // rooms.getOrPut(nextPoint) { rooms[point]!! + 1 } // Cas des détours
+                    if(rooms[nextPoint] != null) rooms[nextPoint] = min(rooms[point]!! + 1, rooms[nextPoint]!!)
+                    else rooms[nextPoint] = rooms[point]!! + 1
                     point = nextPoint
                 }
             }
