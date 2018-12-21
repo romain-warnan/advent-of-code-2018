@@ -37,11 +37,5 @@ class Day17 {
         var type = '.'
 
         fun canMove(bottom: Int) = y < bottom
-
-        fun move(map: Set<Point>) : Set<Point> {
-            val downPoint = Point(x, y + 1)
-            if(downPoint !in map) return setOf(downPoint)
-
-        }
     }
 }
