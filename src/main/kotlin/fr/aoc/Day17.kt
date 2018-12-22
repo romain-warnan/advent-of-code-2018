@@ -1,6 +1,7 @@
 package fr.aoc
 
 import java.io.File
+import java.util.concurrent.TimeUnit
 import kotlin.streams.toList
 
 class Day17 {
@@ -8,24 +9,59 @@ class Day17 {
     private val hRegex = Regex("y=(\\d+), x=(\\d+)\\.\\.(\\d+)")
     private val vRegex = Regex("x=(\\d+), y=(\\d+)\\.\\.(\\d+)")
 
+    var left = 0
+    var right = 0
+    var bottom = 0
+
     fun part1(path: String): Int {
-        val clay = clay(path)
         val spring = Point(500, 0)
-        val water = mutableSetOf<Water>()
-        val restWater = mutableListOf<Point>()
-        val bottom = bottom(clay)
-        val fallingWater = mutableSetOf(Water(spring))
-        while (isRunning(fallingWater, bottom)) {
-            val nextWater = mutableSetOf<Water>()
-            fallingWater.forEach {
-                nextWater.addAll(it.move(clay, restWater))
+        val clay = clay(path)
+        val map = map(clay, spring)
+        val water = mutableSetOf(Water(spring))
+        var freshWater = water
+        var previousWaterSize = water.size
+        while (true) {
+            draw(map)
+            TimeUnit.MILLISECONDS.sleep(300)
+            freshWater = freshWater.flatMap { it.move(map) }.toMutableSet()
+            water.addAll(freshWater)
+            if (updateRestWater(map, water)) freshWater = water
+            val waterSize = waterSize(map)
+            if(waterSize <= previousWaterSize) {
+                return waterSize - 1
             }
-            fallingWater.removeIf { true }
-            fallingWater.addAll(nextWater)
-            water.addAll(fallingWater)
-            updateRestWater(clay, restWater, water)
+            previousWaterSize = waterSize
         }
-        return water.size + restWater.size -1
+    }
+
+    private fun waterSize(map: MutableList<MutableList<Char>>) = map.flatMap { it }.count { it == '|' || it == '~' }
+
+    private fun map(clay: List<Point>, spring: Point): MutableList<MutableList<Char>> {
+        val map = mutableListOf<MutableList<Char>>()
+        left = clay.minBy { it.x }!!.x
+        right = clay.maxBy { it.x }!!.x
+        bottom = clay.maxBy { it.y }!!.y
+        for (y in 0..bottom) {
+            val line = mutableListOf<Char>()
+            for (x in left..right) {
+                val point = Point(x, y)
+                line += when (point) {
+                    spring -> '|'
+                    in clay -> '#'
+                    else -> '.'
+                }
+            }
+            map += line
+        }
+        return map
+    }
+
+    private fun draw(map: MutableList<MutableList<Char>>) {
+        println()
+        map.forEach {
+            it.forEach { print(it) }
+            println()
+        }
     }
 
     private fun clay(path: String) = File(path).bufferedReader()
@@ -35,20 +71,23 @@ class Day17 {
         .toList()
         .toList()
 
-    private fun bottom(clay: List<Point>) = clay.map { it.y }.max()!!
-
-    private fun updateRestWater(clay: List<Point>, restWater: MutableList<Point>, water: MutableSet<Water>) {
+    private fun updateRestWater(map: MutableList<MutableList<Char>>, water: MutableSet<Water>): Boolean {
+        var updated = false
         val waterPoints = water.map { it.point }
         for(waterPoint in waterPoints) {
             val segment = waterPoint.segment(waterPoints)
-            if(segment.first().leftPoint() in clay && segment.last().rightPoint() in clay) {
-                restWater.addAll(segment)
+            val leftPoint = segment.first().leftPoint()
+            val rightPoint = segment.last().rightPoint()
+            if(get(leftPoint, map) == '#' && get(rightPoint, map) == '#') {
+                for (x in leftPoint.x + 1 until rightPoint.x) {
+                    map[leftPoint.y][x - left] = '~'
+                    water.removeIf { it.point == Point(x, leftPoint.y) }
+                }
+                updated = true
             }
         }
-        water.removeIf { it.point in restWater }
+        return updated
     }
-
-    private fun isRunning(water: Set<Water>, bottom: Int) = water.any { it.canMove(bottom) }
 
     private fun points(line: String): List<Point> {
         if(hRegex.matches(line)) {
@@ -57,6 +96,15 @@ class Day17 {
         }
         val (x, y1, y2) = vRegex.matchEntire(line)!!.groupValues.drop(1).map { it.toInt() }
         return (y1..y2).map { Point(x, it) }.toList()
+    }
+
+    fun get(point: Point, map: MutableList<MutableList<Char>>): Char {
+        if(point.y !in 0..bottom || point.x !in left..right) return '.'
+        return map[point.y][point.x - left]
+    }
+
+    fun set(point: Point, map: MutableList<MutableList<Char>>, value: Char) {
+        map[point.y][point.x - left] = value
     }
 
     data class Point(val x: Int, val y: Int): Comparable<Point> {
@@ -87,21 +135,42 @@ class Day17 {
         fun rightPoint() = Point(x + 1, y)
     }
 
-    data class Water(val point: Point) {
+    inner class Water(val point: Point) {
 
-        fun canMove(bottom: Int) = point.y < bottom
+        fun move(map: MutableList<MutableList<Char>>): Set<Water> {
+            if (point.y < bottom) {
+                val downPoint = point.downPoint()
+                val leftPoint = point.leftPoint()
+                val rightPoint = point.rightPoint()
 
-        fun move(clay: List<Point>, restWater: List<Point>): Set<Water> {
-            val downPoint = point.downPoint()
-            val leftPoint = point.leftPoint()
-            val rightPoint = point.rightPoint()
-
-            if(downPoint !in clay && downPoint !in restWater) return setOf(Water(downPoint))
-            if(leftPoint !in clay && rightPoint !in clay) return setOf(Water(leftPoint), Water(rightPoint))
-            if(leftPoint !in clay && rightPoint in clay) return setOf(Water(leftPoint))
-            if(leftPoint in clay && rightPoint !in clay) return setOf(Water(rightPoint))
-
+                if(get(downPoint, map) != '#' && get(downPoint, map) != '~') {
+                    set(downPoint, map, '|')
+                    return setOf(Water(downPoint))
+                }
+                if(get(leftPoint, map) != '#' && get(rightPoint, map) != '#') {
+                    set(leftPoint, map, '|')
+                    set(rightPoint, map, '|')
+                    return setOf(Water(leftPoint), Water(rightPoint))
+                }
+                if(get(leftPoint, map) != '#' && get(rightPoint, map) == '#') {
+                    set(leftPoint, map, '|')
+                    return setOf(Water(leftPoint))
+                }
+                if(get(leftPoint, map) == '#' && get(rightPoint, map) != '#') {
+                    set(rightPoint, map, '|')
+                    return setOf(Water(rightPoint))
+                }
+            }
             return setOf()
+        }
+
+        override fun hashCode() = point.hashCode()
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other?.javaClass != javaClass) return false
+            other as Water
+            return this.point == other.point
         }
     }
 }
