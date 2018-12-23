@@ -1,7 +1,7 @@
 package fr.aoc
 
 import java.io.File
-import java.util.concurrent.TimeUnit
+import java.util.*
 import kotlin.streams.toList
 
 class Day17 {
@@ -18,16 +18,24 @@ class Day17 {
         val clay = clay(path)
         val map = map(clay, spring)
         val water = mutableSetOf(Water(spring))
-        var freshWater = water
         var previousWaterSize = water.size
+        var n = 0
         while (true) {
-            draw(map)
-            TimeUnit.MILLISECONDS.sleep(300)
-            freshWater = freshWater.flatMap { it.move(map) }.toMutableSet()
+            n ++
+            println(n)
+            if(n % 1000 == 0) {
+                draw(map)
+            }
+            // TimeUnit.MILLISECONDS.sleep(300)
+            val freshWater = water
+                .filter { it.point.y > bottom || get(Point(it.point.x, it.point.y + 1), map) != '|' }
+                .flatMap { it.move(map) }
+                .toMutableSet()
             water.addAll(freshWater)
-            if (updateRestWater(map, water)) freshWater = water
+            updateRestWater(map, water)
             val waterSize = waterSize(map)
             if(waterSize <= previousWaterSize) {
+                draw(map)
                 return waterSize - 1
             }
             previousWaterSize = waterSize
@@ -36,11 +44,11 @@ class Day17 {
 
     private fun waterSize(map: MutableList<MutableList<Char>>) = map.flatMap { it }.count { it == '|' || it == '~' }
 
-    private fun map(clay: List<Point>, spring: Point): MutableList<MutableList<Char>> {
+    private fun map(clay: SortedSet<Point>, spring: Point): MutableList<MutableList<Char>> {
         val map = mutableListOf<MutableList<Char>>()
-        left = clay.minBy { it.x }!!.x
-        right = clay.maxBy { it.x }!!.x
-        bottom = clay.maxBy { it.y }!!.y
+        left = clay.map { it.x }.min()!!
+        right = clay.map { it.x }.max()!!
+        bottom = clay.map { it.y }.max()!!
         for (y in 0..bottom) {
             val line = mutableListOf<Char>()
             for (x in left..right) {
@@ -68,11 +76,9 @@ class Day17 {
         .lines()
         .map { points(it) }
         .flatMap { it.stream() }
-        .toList()
-        .toList()
+        .toList().toSortedSet()
 
-    private fun updateRestWater(map: MutableList<MutableList<Char>>, water: MutableSet<Water>): Boolean {
-        var updated = false
+    private fun updateRestWater(map: MutableList<MutableList<Char>>, water: MutableSet<Water>) {
         val waterPoints = water.map { it.point }
         for(waterPoint in waterPoints) {
             val segment = waterPoint.segment(waterPoints)
@@ -83,10 +89,8 @@ class Day17 {
                     map[leftPoint.y][x - left] = '~'
                     water.removeIf { it.point == Point(x, leftPoint.y) }
                 }
-                updated = true
             }
         }
-        return updated
     }
 
     private fun points(line: String): List<Point> {
@@ -104,7 +108,7 @@ class Day17 {
     }
 
     fun set(point: Point, map: MutableList<MutableList<Char>>, value: Char) {
-        map[point.y][point.x - left] = value
+        if(point.y in 0..bottom && point.x in left..right) map[point.y][point.x - left] = value
     }
 
     data class Point(val x: Int, val y: Int): Comparable<Point> {
