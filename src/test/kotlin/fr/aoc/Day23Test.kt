@@ -18,4 +18,10 @@ class Day23Test {
         val answer = day.part1("src/test/resources/input23.1")
         Assert.assertEquals(7, answer)
     }
+
+    @Test
+    fun test2() {
+        val answer = day.part1("src/test/resources/input23.2")
+        Assert.assertEquals(36, answer)
+    }
 }

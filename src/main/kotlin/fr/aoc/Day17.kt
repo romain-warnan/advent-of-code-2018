@@ -9,6 +9,8 @@ class Day17 {
     private val hRegex = Regex("y=(\\d+), x=(\\d+)\\.\\.(\\d+)")
     private val vRegex = Regex("x=(\\d+), y=(\\d+)\\.\\.(\\d+)")
 
+
+    val blocks = setOf('#', '|')
     var left = 0
     var right = 0
     var bottom = 0
@@ -19,22 +21,16 @@ class Day17 {
         val map = map(clay, spring)
         val water = mutableSetOf(Water(spring))
         var previousWaterSize = water.size
-        var n = 0
+        var freshWater = water
         while (true) {
-            n ++
-            println(n)
-            if(n % 1000 == 0) {
-                draw(map)
-            }
-            // TimeUnit.MILLISECONDS.sleep(300)
-            val freshWater = water
-                .filter { it.point.y > bottom || get(Point(it.point.x, it.point.y + 1), map) != '|' }
+            val nextWater = freshWater
                 .flatMap { it.move(map) }
                 .toMutableSet()
-            water.addAll(freshWater)
-            updateRestWater(map, water)
+            val updated = updateRestWater(map, water, nextWater)
+            water.addAll(nextWater)
+            freshWater = nextWater
             val waterSize = waterSize(map)
-            if(waterSize <= previousWaterSize) {
+            if(waterSize <= previousWaterSize && !updated) {
                 draw(map)
                 return waterSize - 1
             }
@@ -46,8 +42,8 @@ class Day17 {
 
     private fun map(clay: SortedSet<Point>, spring: Point): MutableList<MutableList<Char>> {
         val map = mutableListOf<MutableList<Char>>()
-        left = clay.map { it.x }.min()!!
-        right = clay.map { it.x }.max()!!
+        left = clay.map { it.x }.min()!! - 1
+        right = clay.map { it.x }.max()!! + 1
         bottom = clay.map { it.y }.max()!!
         for (y in 0..bottom) {
             val line = mutableListOf<Char>()
@@ -78,19 +74,25 @@ class Day17 {
         .flatMap { it.stream() }
         .toList().toSortedSet()
 
-    private fun updateRestWater(map: MutableList<MutableList<Char>>, water: MutableSet<Water>) {
+    private fun updateRestWater(map: MutableList<MutableList<Char>>, water: MutableSet<Water>, nextWater: MutableSet<Water>): Boolean {
+        var updated = false
         val waterPoints = water.map { it.point }
         for(waterPoint in waterPoints) {
-            val segment = waterPoint.segment(waterPoints)
-            val leftPoint = segment.first().leftPoint()
-            val rightPoint = segment.last().rightPoint()
-            if(get(leftPoint, map) == '#' && get(rightPoint, map) == '#') {
-                for (x in leftPoint.x + 1 until rightPoint.x) {
-                    map[leftPoint.y][x - left] = '~'
-                    water.removeIf { it.point == Point(x, leftPoint.y) }
+            if(get(waterPoint, map) != '~') {
+                val segment = waterPoint.segment(waterPoints)
+                val leftPoint = segment.first().leftPoint()
+                val rightPoint = segment.last().rightPoint()
+                if(get(leftPoint, map) == '#' && get(rightPoint, map) == '#') {
+                    updated = true
+                    for (x in leftPoint.x + 1 until rightPoint.x) {
+                        map[leftPoint.y][x - left] = '~'
+                        if(map[leftPoint.y - 1][x - left] == '|')  nextWater += Water(Point(x, leftPoint.y - 1))
+                        water.removeIf { it.point == Point(x, leftPoint.y) }
+                    }
                 }
             }
         }
+        return updated
     }
 
     private fun points(line: String): List<Point> {
@@ -151,16 +153,16 @@ class Day17 {
                     set(downPoint, map, '|')
                     return setOf(Water(downPoint))
                 }
-                if(get(leftPoint, map) != '#' && get(rightPoint, map) != '#') {
+                if(get(leftPoint, map) !in blocks && get(rightPoint, map) !in blocks) {
                     set(leftPoint, map, '|')
                     set(rightPoint, map, '|')
                     return setOf(Water(leftPoint), Water(rightPoint))
                 }
-                if(get(leftPoint, map) != '#' && get(rightPoint, map) == '#') {
+                if(get(leftPoint, map) !in blocks && get(rightPoint, map) in blocks) {
                     set(leftPoint, map, '|')
                     return setOf(Water(leftPoint))
                 }
-                if(get(leftPoint, map) == '#' && get(rightPoint, map) != '#') {
+                if(get(leftPoint, map) in blocks && get(rightPoint, map) !in blocks) {
                     set(rightPoint, map, '|')
                     return setOf(Water(rightPoint))
                 }
