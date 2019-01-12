@@ -6,10 +6,10 @@ class Day08 {
 
     private val numbers = mutableListOf<Int>()
 
-    fun part1(path: String): Long {
+    fun part1(path: String): Int {
         numbers.addAll(numbers(path))
         val tree = readTree()
-        return -1L
+        return tree.sumOfMetadata()
     }
 
     private fun numbers(path: String) = File(path).readText().split(" ").map { it.toInt() }.toList()
@@ -27,7 +27,6 @@ class Day08 {
     private fun readNode(node: Node): Node {
         if(node.isComplete()) {
             node.metadata = metadata(node)
-            println("" + node.index + ": " + node.length() + ", " + node.metadata)
             val parent = node.parent
             if(parent != null) {
                 parent.childNodes += node
@@ -54,10 +53,9 @@ class Day08 {
 
         fun isComplete() = childNodes.size == childNodeQuantity
 
-        fun length(): Int = when(childNodeQuantity) {
-            0 -> metadataQuantity + 2
-            else -> childNodes.map { it.length() }.sum() + 2 + metadataQuantity
-        }
+        fun length(): Int = metadataQuantity + 2 + childNodes.map { it.length() }.sum()
+
+        fun sumOfMetadata(): Int =  metadata.sum() + childNodes.map { it.sumOfMetadata() }.sum()
 
         fun nextChildIndex(): Int {
             if(childNodes.isEmpty()) return index + 2
