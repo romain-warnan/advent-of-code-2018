@@ -12,6 +12,12 @@ class Day08 {
         return tree.sumOfMetadata()
     }
 
+    fun part2(path: String): Int {
+        numbers.addAll(numbers(path))
+        val tree = readTree()
+        return tree.value()
+    }
+
     private fun numbers(path: String) = File(path).readText().split(" ").map { it.toInt() }.toList()
 
     private fun node(index: Int, numbers: List<Int>, parentNode: Node? = null): Node {
@@ -56,6 +62,15 @@ class Day08 {
         fun length(): Int = metadataQuantity + 2 + childNodes.map { it.length() }.sum()
 
         fun sumOfMetadata(): Int =  metadata.sum() + childNodes.map { it.sumOfMetadata() }.sum()
+
+        fun value(): Int {
+            if(childNodeQuantity == 0) return metadata.sum()
+            return metadata
+                .map { it - 1 }
+                .filter { it < childNodeQuantity }
+                .map { childNodes[it].value() }
+                .sum()
+        }
 
         fun nextChildIndex(): Int {
             if(childNodes.isEmpty()) return index + 2
