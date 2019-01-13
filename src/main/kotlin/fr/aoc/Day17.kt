@@ -19,15 +19,13 @@ class Day17 {
         val spring = Point(500, 0)
         val clay = clay(path)
         val map = map(clay, spring)
-        val water = mutableSetOf(Water(spring))
-        var previousWaterSize = water.size
-        var freshWater = water
+        var freshWater = mutableSetOf(Water(spring))
+        var previousWaterSize = 1
         while (true) {
             val nextWater = freshWater
                 .flatMap { it.move(map) }
                 .toMutableSet()
-            val updated = updateRestWater(map, water, nextWater)
-            water.addAll(nextWater)
+            val updated = updateRestWater(map, freshWater, nextWater)
             freshWater = nextWater
             val waterSize = waterSize(map)
             if(waterSize <= previousWaterSize && !updated) {
@@ -74,12 +72,16 @@ class Day17 {
         .flatMap { it.stream() }
         .toList().toSortedSet()
 
-    private fun updateRestWater(map: MutableList<MutableList<Char>>, water: MutableSet<Water>, nextWater: MutableSet<Water>): Boolean {
+    private fun updateRestWater(map: MutableList<MutableList<Char>>, freshWater: MutableSet<Water>, nextWater: MutableSet<Water>): Boolean {
         var updated = false
-        val waterPoints = water.map { it.point }
-        for(waterPoint in waterPoints) {
-            if(get(waterPoint, map) != '~') {
-                val segment = waterPoint.segment(waterPoints)
+        for(point in freshWater.map { it.point }) {
+            if(get(point, map) != '~') {
+                val waterPoints = mutableListOf<Point>()
+                val line = map[point.y]
+                for(x in line.indices) {
+                    if(map[point.y][x] == '|') waterPoints += Point(x + left, point.y)
+                }
+                val segment = point.segment(waterPoints)
                 val leftPoint = segment.first().leftPoint()
                 val rightPoint = segment.last().rightPoint()
                 if(get(leftPoint, map) == '#' && get(rightPoint, map) == '#') {
@@ -87,7 +89,6 @@ class Day17 {
                     for (x in leftPoint.x + 1 until rightPoint.x) {
                         map[leftPoint.y][x - left] = '~'
                         if(map[leftPoint.y - 1][x - left] == '|')  nextWater += Water(Point(x, leftPoint.y - 1))
-                        water.removeIf { it.point == Point(x, leftPoint.y) }
                     }
                 }
             }
